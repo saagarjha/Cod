@@ -16,6 +16,7 @@ public class CodEncoder {
 
 	public func encode<T: Encodable>(_ value: T) throws -> Data {
 		let encoder = Encoder(sharedContext: nil)
+        encoder.userInfo = self.userInfo
 		try value.encode(to: encoder)
 		let valueData = encoder.container.combine()
 		var data = Data()
@@ -31,15 +32,20 @@ public class CodEncoder {
 		data.append(valueData)
 		return data
 	}
-
+    
+    public var userInfo: [CodingUserInfoKey : Any] = [:]
+    
 	fileprivate class Encoder: Swift.Encoder {
 		let codingPath: [CodingKey] = []
-		let userInfo: [CodingUserInfoKey: Any] = [:]
-
 		let topLevel: Bool
 		var container: Container!
 		let sharedContext: SharedContext
 
+        var userInfo: [CodingUserInfoKey: Any] {
+            get { sharedContext.userInfo }
+            set { sharedContext.userInfo = newValue }
+        }
+        
 		init(sharedContext: SharedContext?) {
 			topLevel = sharedContext == nil
 			self.sharedContext = sharedContext ?? SharedContext()
@@ -281,7 +287,8 @@ public class CodEncoder {
 		var shapeCounter = 0
 		var shapes = [[String]]()
 		var shapeIDs = [[String]: Int]()
-
+        var userInfo: [CodingUserInfoKey: Any] = [:]
+        
 		func lookupID(forShape shape: [String]) -> Int {
 			guard let id = shapeIDs[shape] else {
 				defer {

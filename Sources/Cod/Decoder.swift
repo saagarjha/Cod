@@ -16,17 +16,23 @@ public class CodDecoder {
 
 	public func decode<T: Decodable>(_ type: T.Type, from data: Data) throws -> T {
 		let decoder = try Decoder(sharedContext: nil, data: data)
+        decoder.userInfo = self.userInfo
 		return try T(from: decoder)
 	}
 
+    public var userInfo: [CodingUserInfoKey : Any] = [:]
+    
 	fileprivate class Decoder: Swift.Decoder {
 		let codingPath: [CodingKey] = []
-		let userInfo: [CodingUserInfoKey: Any] = [:]
-
 		let topLevel: Bool
 		let sharedContext: SharedContext
 		let data: Data
 
+        var userInfo: [CodingUserInfoKey: Any] {
+            get { sharedContext.userInfo }
+            set { sharedContext.userInfo = newValue }
+        }
+        
 		init(sharedContext: SharedContext?, data: Data) throws {
 			topLevel = sharedContext == nil
 			if let sharedContext = sharedContext {
@@ -337,7 +343,7 @@ public class CodDecoder {
 
 	fileprivate class SharedContext {
 		let shapes: [Int: [String]]
-
+        var userInfo: [CodingUserInfoKey: Any] = [:]
 		init(shapes: [Int: [String]]) {
 			self.shapes = shapes
 		}
