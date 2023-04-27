@@ -251,7 +251,7 @@ public class CodDecoder {
 					var offset = 0
 					for (key, optional) in zip(shape, optionals) {
 						if optional {
-							keys[key] = .some(nil)
+							keys[key] = nil
 						} else {
 							keys[key] = offset
 							offset += try Data.Index(uleb128: &data)
