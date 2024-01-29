@@ -129,6 +129,44 @@ final class CodBasicTests: XCTestCase {
 			}
 		}
 	}()
+
+	func testUserInfo() {
+		struct UserInfoTestCodable: Codable {
+			static let testUserInfoKey = CodingUserInfoKey(rawValue: "TestUserInfoKey")!
+			let expectedValue: Int
+
+			init(_ expectedValue: Int) {
+				self.expectedValue = expectedValue
+			}
+
+			init(from decoder: Decoder) throws {
+				var container = try decoder.unkeyedContainer()
+				expectedValue = try container.decode(Int.self)
+				let value = decoder.userInfo[Self.testUserInfoKey] as? Int
+				XCTAssertNotNil(value, "Failed to find 'TestUserInfoKey' in userInfo")
+				XCTAssertEqual(value!, expectedValue, "'TestUserInfoKey' does not match expected value'")
+			}
+
+			func encode(to encoder: Encoder) throws {
+				var container = encoder.unkeyedContainer()
+				try container.encode(expectedValue)
+				let value = encoder.userInfo[Self.testUserInfoKey] as? Int
+				XCTAssertNotNil(value, "Failed to find 'TestUserInfoKey' in userInfo")
+				XCTAssertEqual(value!, expectedValue, "'TestUserInfoKey' does not match expected value'")
+			}
+		}
+		let value = Int.random()
+		let test = UserInfoTestCodable(value)
+		let encoder = CodEncoder()
+		encoder.userInfo[UserInfoTestCodable.testUserInfoKey] = value
+		let decoder = CodDecoder()
+		decoder.userInfo[UserInfoTestCodable.testUserInfoKey] = value
+		XCTAssertNoThrow {
+			let encoded = try encoder.encode(test)
+			let decoded = try decoder.decode(UserInfoTestCodable.self, from: encoded)
+			XCTAssertEqual(decoded.expectedValue, value)
+		}
+	}
 }
 
 // Not the most performant or generic, but it'll do for these tests
